@@ -1,17 +1,48 @@
 import type { APIRoute } from 'astro';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { supabase } from '../../lib/supabase';
 import { sendNewsletter as sendEmail } from '../../lib/email';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { newsletterId, secret } = await request.json();
+    const signatureHeader = request.headers.get('X-Signature-SHA256');
+    const body = await request.text();
+    const { newsletterId } = JSON.parse(body);
+    const secret = import.meta.env.SEND_NEWSLETTER_SECRET;
 
-    // 1. Verify the secret key
-    if (secret !== import.meta.env.SEND_NEWSLETTER_SECRET) {
-      return new Response(
-        JSON.stringify({ message: 'No autorizado.' }),
-        { status: 401 }
-      );
+    if (!signatureHeader || !secret) {
+      return new Response(JSON.stringify({ message: 'No autorizado. Falta firma o secreto.' }), {
+        status: 401,
+      });
+    }
+
+    // 1. Verify the HMAC signature
+    const hmac = createHmac('sha256', secret);
+    hmac.update(body);
+    const generatedSignature = hmac.digest('hex');
+
+    let receivedSigBuffer: Buffer;
+    try {
+      // Support both 'sha256=...' and raw signature
+      const signature = signatureHeader.startsWith('sha256=')
+        ? signatureHeader.substring(7)
+        : signatureHeader;
+      receivedSigBuffer = Buffer.from(signature, 'hex');
+    } catch (e) {
+      return new Response(JSON.stringify({ message: 'Firma con formato incorrecto.' }), {
+        status: 401,
+      });
+    }
+    
+    const generatedSigBuffer = Buffer.from(generatedSignature, 'hex');
+
+    if (
+      receivedSigBuffer.length !== generatedSigBuffer.length ||
+      !timingSafeEqual(receivedSigBuffer, generatedSigBuffer)
+    ) {
+      return new Response(JSON.stringify({ message: 'Firma inválida.' }), {
+        status: 401,
+      });
     }
 
     // 2. Fetch the newsletter content from Supabase
