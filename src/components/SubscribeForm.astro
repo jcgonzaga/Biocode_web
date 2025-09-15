@@ -1,0 +1,68 @@
+---
+// src/components/SubscribeForm.astro
+---
+<form id="subscribe-form" class="w-full max-w-lg mx-auto">
+  <div class="flex flex-wrap -mx-3 mb-6">
+    <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+      <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-first-name">
+        Nombre
+      </label>
+      <input class="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" id="grid-first-name" type="text" placeholder="Jane">
+    </div>
+    <div class="w-full md:w-1/2 px-3">
+      <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-last-name">
+        Email
+      </label>
+      <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-last-name" type="email" placeholder="Doe@example.com">
+    </div>
+  </div>
+  <div class="flex items-center justify-center">
+    <button class="bg-energetic-orange hover:bg-orange-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+      Subscribirse
+    </button>
+  </div>
+  <div id="form-message" class="mt-4 text-center"></div>
+</form>
+
+
+<script>
+  document.getElementById('subscribe-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const form = event.target as HTMLFormElement;
+    const nameInput = form.querySelector('#grid-first-name') as HTMLInputElement;
+    const emailInput = form.querySelector('#grid-last-name') as HTMLInputElement;
+    const messageDiv = document.getElementById('form-message');
+
+    const name = nameInput.value;
+    const email = emailInput.value;
+
+    if (!name || !email) {
+      messageDiv.textContent = 'Por favor, complete todos los campos.';
+      messageDiv.className = 'text-red-500';
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        window.location.href = '/thank-you';
+      } else {
+        messageDiv.textContent = data.message || 'Ha ocurrido un error.';
+        messageDiv.className = 'text-red-500';
+      }
+    } catch (error) {
+      messageDiv.textContent = 'Ha ocurrido un error en la conexión.';
+      messageDiv.className = 'text-red-500';
+    }
+  });
+</script>
+

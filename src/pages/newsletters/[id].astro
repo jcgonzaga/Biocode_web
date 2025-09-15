@@ -1,0 +1,50 @@
+---
+import { supabase } from '../../lib/supabase';
+// import { marked } from 'marked'; // Removed
+
+// Add getStaticPaths function
+
+
+// Get the ID from the URL
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/404');
+}
+
+// Fetch the newsletter from Supabase
+const { data: newsletter, error } = await supabase
+  .from('newsletters')
+  .select('subject, content_html') // Still fetching content_html
+  .eq('id', id)
+  .single();
+
+if (error || !newsletter) {
+  console.error('Error fetching newsletter:', error);
+  return Astro.redirect('/404');
+}
+
+// Use content_html directly
+const contentHtml = newsletter.content_html;
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{newsletter.title} | Biocode Newsletter</title>
+  </head>
+  <body class="bg-gray-100 text-gray-800">
+    <main class="container mx-auto p-8">
+      <article class="mx-auto bg-white p-8 rounded-lg shadow-md"> {/* Removed prose classes */}
+        <a href="/" class="text-emerald-green hover:underline mb-8 block">&larr; Volver a todas las newsletters</a>
+        <h1>{newsletter.subject}</h1>
+        <Fragment set:html={contentHtml} />
+      </article>
+    </main>
+  </body>
+</html>
+
+{/* Removed style is:global block */}

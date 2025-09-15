@@ -1,0 +1,90 @@
+
+---
+import { createClient } from '@supabase/supabase-js';
+
+const isAuthenticated = Astro.cookies.has('auth');
+
+if (!isAuthenticated) {
+    return Astro.redirect('/login');
+}
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_KEY;
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+        persistSession: false
+    }
+});
+
+// Fetch KPIs
+const { count: subscribersCount, error: subError } = await supabaseAdmin
+    .from('subscribers')
+    .select('*', { count: 'exact', head: true });
+
+const { count: newslettersCount, error: newsError } = await supabaseAdmin
+    .from('newsletters')
+    .select('*', { count: 'exact', head: true });
+
+// Fetch subscribers list
+const { data: subscribers, error: subscribersListError } = await supabaseAdmin
+    .from('subscribers')
+    .select('name, email');
+
+---
+
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Dashboard | Biocode Newsletter</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <main class="container mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-6">Dashboard de Biocode</h1>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-2">Total de Subscriptores</h2>
+                <p class="text-4xl font-bold text-emerald-green">{subscribersCount ?? 'Error'}</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-2">Newsletters Enviadas</h2>
+                <p class="text-4xl font-bold text-deep-blue">{newslettersCount ?? 'Error'}</p>
+            </div>
+        </section>
+
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Lista de Subscriptores</h2>
+            {subscribers && subscribers.length > 0 ? (
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {subscribers.map(sub => (
+                            <tr>
+                                <td>{sub.name}</td>
+                                <td>{sub.email}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            ) : (
+                <p>No hay subscriptores registrados.</p>
+            )}
+            {subscribersListError && <p class="text-red-500">Error al cargar la lista de subscriptores.</p>}
+        </section>
+    </main>
+</body>
+</html>

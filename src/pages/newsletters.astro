@@ -1,0 +1,100 @@
+
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { supabase } from '../lib/supabase';
+
+// Fetch newsletters from Supabase
+const { data: newsletters, error } = await supabase
+  .from('newsletters')
+  .select('id, subject, publication_date, content_html, image_url')
+  .order('publication_date', { ascending: false });
+
+if (error) {
+  console.error('Error fetching newsletters:', error);
+}
+
+function createExcerpt(html: string, length = 100) {
+    if (!html) return '';
+
+    // 1. Remove <style> tags and their content
+    let cleanHtml = html.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+
+    let text = '';
+    // 2. Find all paragraph tags
+    const allParagraphMatches = [...cleanHtml.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)];
+
+    // 3. Try to get the content of the second paragraph
+    if (allParagraphMatches.length >= 2 && allParagraphMatches[1][1]) {
+        text = allParagraphMatches[1][1].replace(/<[^>]*>/g, ' ');
+    } else if (allParagraphMatches.length >= 1 && allParagraphMatches[0][1]) {
+        // Fallback to the first paragraph if only one exists
+        text = allParagraphMatches[0][1].replace(/<[^>]*>/g, ' ');
+    } else {
+        // Fallback: if no paragraph found, strip all HTML from the cleaned content
+        text = cleanHtml.replace(/<[^>]*>/g, ' ');
+    }
+
+    text = text.replace(/\s+/g, ' ').trim(); // Normalize whitespace
+
+    if (text.length <= length) return text;
+    return text.slice(0, length) + '...';
+}
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Newsletters | Biocode Newsletter</title>
+  </head>
+  <body class="bg-gray-100 text-gray-800">
+    <Header />
+    <main class="container mx-auto p-8">
+      <h1 class="text-3xl font-bold mb-6 text-deep-blue">Archivo de Newsletters</h1>
+
+      <div class="mb-8">
+        <input type="text" id="search-input" placeholder="Buscar newsletters..." class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-green" />
+      </div>
+
+      <div id="newsletter-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {newsletters && newsletters.map(newsletter => (
+          <a href={`/newsletters/${newsletter.id}`} class="newsletter-card block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 transform hover:-translate-y-1">
+            {console.log('Image URL for newsletter:', newsletter.id, newsletter.image_url)}
+            {newsletter.image_url && <img src={newsletter.image_url} alt={newsletter.subject} class="w-full h-48 object-cover rounded-t-lg mb-4" />}
+            <p class="text-sm text-gray-500 mb-2">{new Date(newsletter.publication_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            <h3 class="text-xl font-semibold text-emerald-green mb-2">{newsletter.subject}</h3>
+            <p class="text-gray-600">{createExcerpt(newsletter.content_html)}</p>
+          </a>
+        ))}
+      </div>
+      {newsletters && newsletters.length === 0 && (
+        <p class="text-center text-gray-600">No hay newsletters disponibles por el momento.</p>
+      )}
+    </main>
+
+    <script>
+      const searchInput = document.getElementById('search-input');
+      const newsletterList = document.getElementById('newsletter-list');
+      const newsletterCards = Array.from(document.querySelectorAll('.newsletter-card'));
+
+      searchInput.addEventListener('keyup', function() {
+        const searchTerm = searchInput.value.toLowerCase();
+
+        newsletterCards.forEach(card => {
+          const title = card.querySelector('h3').textContent.toLowerCase();
+          const excerpt = card.querySelector('p:last-of-type').textContent.toLowerCase();
+
+          if (title.includes(searchTerm) || excerpt.includes(searchTerm)) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    </script>
+    <Footer />
+  </body>
+</html>

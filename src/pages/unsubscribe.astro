@@ -1,0 +1,41 @@
+
+---
+import { supabase } from '../lib/supabase';
+
+const { token } = Astro.url.searchParams;
+let message = 'Proporciona un token de cancelación de subscripción válido.';
+let isError = true;
+
+if (token) {
+    // For now, we just show a confirmation form.
+    // The actual token validation will be done in the API endpoint.
+    message = '¿Estás seguro de que quieres cancelar tu subscripción a Biocode Weekly?';
+    isError = false;
+}
+---
+
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Cancelar Subscripción | Biocode Newsletter</title>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center h-screen">
+    <main class="container mx-auto p-8 max-w-md">
+        <div class="bg-white p-8 rounded-lg shadow-md text-center">
+            <h1 class="text-2xl font-bold mb-6">Cancelar Subscripción</h1>
+            <p class="mb-6">{message}</p>
+            {!isError && (
+                <form action="/api/unsubscribe" method="post">
+                    <input type="hidden" name="token" value={token} />
+                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                        Sí, cancelar mi subscripción
+                    </button>
+                </form>
+            )}
+        </div>
+    </main>
+</body>
+</html>
