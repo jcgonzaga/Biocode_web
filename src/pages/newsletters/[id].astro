@@ -22,7 +22,7 @@ if (error || !newsletter) {
 const contentHtml = newsletter.content_html;
 ---
 
-<MainLayout title={newsletter.subject}>
+<MainLayout title={newsletter.subject} activePage="newsletters">
   <div class="max-w-4xl mx-auto">
     <a href="/" class="inline-flex items-center px-4 py-2 mb-8 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-teal-500 border border-transparent rounded-md shadow-sm hover:from-emerald-600 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-transform transform hover:-translate-y-0.5">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">

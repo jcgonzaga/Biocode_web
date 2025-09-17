@@ -1,9 +1,30 @@
+---
+interface Props {
+  activePage?: 'home' | 'newsletters';
+}
+
+const { activePage } = Astro.props;
+---
+
 <header class="bg-gradient-main text-pure-white p-8 shadow-md">
   <div class="container mx-auto flex justify-between items-center">
-    <a href="/" class="text-3xl font-bold tracking-tight"><img src="/images/BIOCODE-10.png" alt="Biocode Logo" class="h-16"></a>
+    <div class="flex items-center">
+      <a href="/" class="flex items-center">
+        <img src="/images/BIOCODE-10.png" alt="Biocode Logo" class="h-24 mr-3" />
+      </a>
+    </div>
     <nav>
-      <ul class="flex space-x-4">
-        <li><a href="/newsletters" class="bg-emerald-green hover:bg-lime-green text-pure-white font-bold py-2 px-4 rounded-full transition-colors duration-200">Newsletters</a></li>
+      <ul class="flex space-x-6">
+        <li>
+          <a href="/" class="hover:text-emerald-green transition-colors duration-200">Home</a>
+        </li>
+        <li>
+          {activePage === 'newsletters' ? (
+            <span class="text-emerald-green font-semibold">Newsletters</span>
+          ) : (
+            <a href="/newsletters" class="hover:text-emerald-green transition-colors duration-200">Newsletters</a>
+          )}
+        </li>
       </ul>
     </nav>
   </div>
