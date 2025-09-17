@@ -11,14 +11,10 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       return new Response('Token no proporcionado.', { status: 400 });
     }
 
-    // For the MVP, we assume the token is the email address.
-    // In a real-world scenario, this should be a secure, unique token.
-    const email = token.toString();
-
     const { error } = await supabase
       .from('subscribers')
       .delete()
-      .eq('email', email);
+      .eq('unsubscribe_token', token.toString());
 
     if (error) {
       console.error('Supabase error:', error);

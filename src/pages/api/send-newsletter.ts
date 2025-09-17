@@ -8,7 +8,7 @@ export const POST: APIRoute = async ({ request }) => {
     const signatureHeader = request.headers.get('X-Signature-SHA256');
     const body = await request.text();
     const { newsletterId } = JSON.parse(body);
-    const secret = import.meta.env.SEND_NEWSLETTER_SECRET;
+    const secret = import.meta.env.PUBLIC_SEND_NEWSLETTER_SECRET;
 
     if (!signatureHeader || !secret) {
       return new Response(JSON.stringify({ message: 'No autorizado. Falta firma o secreto.' }), {

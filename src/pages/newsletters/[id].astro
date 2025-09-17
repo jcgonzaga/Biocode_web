@@ -1,21 +1,16 @@
 ---
+import MainLayout from '../../layouts/MainLayout.astro';
 import { supabase } from '../../lib/supabase';
-// import { marked } from 'marked'; // Removed
 
-// Add getStaticPaths function
-
-
-// Get the ID from the URL
 const { id } = Astro.params;
 
 if (!id) {
   return Astro.redirect('/404');
 }
 
-// Fetch the newsletter from Supabase
 const { data: newsletter, error } = await supabase
   .from('newsletters')
-  .select('subject, content_html') // Still fetching content_html
+  .select('subject, content_html')
   .eq('id', id)
   .single();
 
@@ -24,27 +19,19 @@ if (error || !newsletter) {
   return Astro.redirect('/404');
 }
 
-// Use content_html directly
 const contentHtml = newsletter.content_html;
 ---
 
-<html lang="es">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>{newsletter.title} | Biocode Newsletter</title>
-  </head>
-  <body class="bg-gray-100 text-gray-800">
-    <main class="container mx-auto p-8">
-      <article class="mx-auto bg-white p-8 rounded-lg shadow-md"> {/* Removed prose classes */}
-        <a href="/" class="text-emerald-green hover:underline mb-8 block">&larr; Volver a todas las newsletters</a>
-        <h1>{newsletter.subject}</h1>
-        <Fragment set:html={contentHtml} />
-      </article>
-    </main>
-  </body>
-</html>
-
-{/* Removed style is:global block */}
+<MainLayout title={newsletter.subject}>
+  <div class="max-w-4xl mx-auto">
+    <a href="/" class="inline-flex items-center px-4 py-2 mb-8 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-teal-500 border border-transparent rounded-md shadow-sm hover:from-emerald-600 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-transform transform hover:-translate-y-0.5">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+      </svg>
+      Volver a la Home
+    </a>
+    <article class="bg-white rounded-lg shadow-md overflow-hidden">
+      <Fragment set:html={contentHtml} />
+    </article>
+  </div>
+</MainLayout>

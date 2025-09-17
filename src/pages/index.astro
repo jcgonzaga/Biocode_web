@@ -10,7 +10,7 @@ const { data: latestNewsletters, error } = await supabase
   .from('newsletters')
   .select('id, subject, publication_date, content_html, image_url')
   .order('publication_date', { ascending: false })
-  .limit(2);
+  .limit(1);
 
 if (error) {
   console.error('Error fetching latest newsletters:', error);
@@ -71,9 +71,9 @@ function createExcerpt(html: string, length = 100) {
 
       <section class="my-12">
         <h2 class="text-3xl font-bold mb-6 text-center text-deep-blue">Nuestras Últimas Ediciones</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="flex justify-center">
           {latestNewsletters && latestNewsletters.map(newsletter => (
-            <a href={`/newsletters/${newsletter.id}`} class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 transform hover:-translate-y-1">
+            <a href={`/newsletters/${newsletter.id}`} class="block md:w-1/2 bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 transform hover:-translate-y-1">
               {newsletter.image_url && <img src={newsletter.image_url} alt={newsletter.subject} class="w-full h-48 object-cover rounded-t-lg mb-4" />}
               <p class="text-sm text-gray-500 mb-2">{new Date(newsletter.publication_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
               <h3 class="text-xl font-semibold text-emerald-green mb-2">{newsletter.subject}</h3>
